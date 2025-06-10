@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-message-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: chat-message-service
+  template:
+    metadata:
+      labels:
+        app: chat-message-service
+    spec:
+      serviceAccountName: chatapp-serviceaccount
+      containers:
+        - name: chat-message-service
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: {{ .Chart.Name }}-secrets
+          ports:
+            - containerPort: 8081

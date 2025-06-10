@@ -1,0 +1,5 @@
+apiVersion: v2
+name: gateway-websocket
+description: WebSocket Gateway for ChatApp
+version: 0.1.0
+appVersion: "1.0"

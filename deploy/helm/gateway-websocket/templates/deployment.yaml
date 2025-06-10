@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-websocket
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: gateway-websocket
+  template:
+    metadata:
+      labels:
+        app: gateway-websocket
+    spec:
+      serviceAccountName: chatapp-serviceaccount
+      containers:
+        - name: gateway-websocket
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: {{ .Chart.Name }}-secrets
+          ports:
+            - containerPort: 8080

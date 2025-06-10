@@ -1,0 +1,9 @@
+replicaCount: 1
+
+image:
+  repository: 767397757187.dkr.ecr.us-east-1.amazonaws.com/chat-message-service
+  tag: latest
+  pullPolicy: Always
+
+service:
+  targetPort: 8081
