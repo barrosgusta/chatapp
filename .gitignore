@@ -34,7 +34,6 @@ chatapp-frontend/.vite/
 **/tmp/
 **/logs/
 **/.env
-**/.env.*
 
 # Terraform
 **/.terraform/
