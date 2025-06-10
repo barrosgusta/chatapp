@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chatapp-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /socket
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway-websocket
+                port:
+                  number: 8080
+          - path: /api/messages
+            pathType: Prefix
+            backend:
+              service:
+                name: chat-message-service
+                port:
+                  number: 8081
