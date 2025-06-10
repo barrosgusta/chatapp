@@ -1,0 +1,70 @@
+# Node.js
+chatapp-frontend/node_modules/
+chatapp-frontend/dist/
+chatapp-frontend/.next/
+chatapp-frontend/.turbo/
+chatapp-frontend/.env.local
+chatapp-frontend/.env.*.local
+chatapp-frontend/.eslintcache
+
+# Bun
+chatapp-frontend/bun.lockb
+
+# Vite
+chatapp-frontend/.vite/
+
+# Build output
+**/bin/
+**/obj/
+**/dist/
+**/build/
+
+# Go
+**/vendor/
+**/*.exe
+**/*.exe~
+**/*.dll
+**/*.so
+**/*.dylib
+**/*.test
+**/coverage.out
+**/.idea/
+**/.vscode/
+**/.DS_Store
+**/tmp/
+**/logs/
+**/.env
+**/.env.*
+
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl
+
+# Helm
+**/charts/*/charts/
+**/charts/*/tmpcharts/
+
+# Kubernetes
+**/*.kubeconfig
+
+# Docker
+**/.docker/
+**/docker-compose.override.yml
+
+# Misc
+*.log
+*.swp
+*.swo
+*.bak
+*.tmp
+*.orig
+
+# Ignore local secrets
+**/secrets.*
+
+# Ignore Python cache (if any)
+**/__pycache__/
+**/*.pyc
+
+# Ignore Mac system files
+.DS_Store
