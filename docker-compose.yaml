@@ -1,0 +1,14 @@
+services:
+  gateway-websocket:
+    build: ./services/gateway-websocket
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+
+  chat-message-service:
+    build: ./services/chat-message-service
+    ports:
+      - "8081:8081"
+    env_file:
+      - .env
