@@ -1,0 +1,93 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # Backend: Test & Lint
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+      - name: Run Go tests (gateway-websocket)
+        run: |
+          cd services/gateway-websocket
+          go test ./...
+      - name: Run Go tests (chat-message-service)
+        run: |
+          cd services/chat-message-service
+          go test ./...
+
+      # Frontend: Test & Lint
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+      - name: Install frontend dependencies
+        run: |
+          cd chatapp-frontend
+          npm ci
+      - name: Lint frontend
+        run: |
+          cd chatapp-frontend
+          npm run lint
+      # (Add frontend tests here if/when available)
+      # Build Docker images and push to ECR
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build and push gateway-websocket image
+        run: |
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/chatapp-gateway:latest ./services/gateway-websocket
+          docker push ${{ steps.login-ecr.outputs.registry }}/chatapp-gateway:latest
+      - name: Build and push chat-message-service image
+        run: |
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/chat-message-service:latest ./services/chat-message-service
+          docker push ${{ steps.login-ecr.outputs.registry }}/chat-message-service:latest
+
+      # Build frontend static site
+      - name: Build frontend static site
+        run: |
+          cd chatapp-frontend
+          npm run build
+      - name: Upload static site to S3
+        run: |
+          aws s3 sync chatapp-frontend/dist s3://${{ secrets.S3_BUCKET_NAME }} --delete
+
+  deploy:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install gateway-websocket ./deploy/helm/gateway-websocket
+          helm upgrade --install chat-message-service ./deploy/helm/chat-message-service
+      - name: Apply Ingress and ServiceAccount
+        run: |
+          kubectl apply -f k8s/serviceaccount-chatapp.yaml
+          kubectl apply -f k8s/ingress.yaml
