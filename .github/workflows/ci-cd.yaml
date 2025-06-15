@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: "24.x"
       - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven/setup-bun@v1
         with:
           bun-version: latest
       - name: Install frontend dependencies
@@ -56,7 +56,6 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       - name: Build and push gateway-websocket image
         run: |
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
           docker build -t ${{ steps.login-ecr.outputs.registry }}/chatapp-gateway:latest ./services/gateway-websocket
           docker push ${{ steps.login-ecr.outputs.registry }}/chatapp-gateway:latest
       - name: Build and push chat-message-service image
@@ -72,7 +71,16 @@ jobs:
       - name: Upload static site to S3
         run: |
           aws s3 sync chatapp-frontend/dist s3://${{ secrets.S3_BUCKET_NAME }} --delete
-
+      # Terraform step
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+      - name: Terraform Init
+        run: terraform -chdir=deploy/terraform init
+      - name: Terraform Plan
+        run: terraform -chdir=deploy/terraform plan
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform -chdir=deploy/terraform apply -auto-approve
   deploy:
     needs: test-and-build
     runs-on: ubuntu-latest
