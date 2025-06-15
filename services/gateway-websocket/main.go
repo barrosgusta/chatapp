@@ -216,10 +216,10 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Get("/ws", wsHandler(hub))
-	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	log.Println("Listening on :8080")
-	http.ListenAndServe(":8080", r)
+	log.Println("Listening on 0.0.0.0:8080")
+	http.ListenAndServe("0.0.0.0:8080", r)
 }
