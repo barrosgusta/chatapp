@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: "24.x"
       - name: Set up Bun
-        uses: oven/setup-bun@v1
+        uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
       - name: Install frontend dependencies
