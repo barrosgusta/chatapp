@@ -36,12 +36,15 @@ func main() {
     // mux.HandleFunc("/message", handler.HandlePostMessage)
 
     mux.HandleFunc("/history", handler.HandleGetMessages)
+    mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 
     // Wrap mux with CORS middleware
     handlerWithCORS := corsMiddleware(mux)
 
-    log.Println("Chat Message Service running on :8081")
-    if err := http.ListenAndServe(":8081", handlerWithCORS); err != nil {
+    log.Println("Chat Message Service running on 0.0.0.0:8081")
+    if err := http.ListenAndServe("0.0.0.0:8081", handlerWithCORS); err != nil {
         log.Fatal("ListenAndServe:", err)
     }
 }
