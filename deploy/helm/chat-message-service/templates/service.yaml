@@ -2,6 +2,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: chat-message-service
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: /health
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval: "30"
 spec:
   selector:
     app: chat-message-service
@@ -9,4 +12,4 @@ spec:
     - protocol: TCP
       port: 8081
       targetPort: 8081
-  type: ClusterIP
+  type: LoadBalancer

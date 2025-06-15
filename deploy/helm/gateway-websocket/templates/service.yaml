@@ -2,6 +2,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: gateway-websocket
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: /health
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval: "30"
 spec:
   selector:
     app: gateway-websocket
@@ -9,4 +12,4 @@ spec:
     - protocol: TCP
       port: 8080
       targetPort: 8080
-  type: ClusterIP
+  type: LoadBalancer
