@@ -1,3 +1,5 @@
+# Allow ALB to reach EKS nodes on app ports
+
 resource "aws_iam_role" "eks_node_role" {
   name = "${var.project_prefix}-node-role"
 
@@ -32,7 +34,9 @@ resource "aws_eks_node_group" "default" {
   cluster_name    = aws_eks_cluster.chatapp.name
   node_group_name = "default"
   node_role_arn   = aws_iam_role.eks_node_role.arn
-  subnet_ids      = aws_subnet.public[*].id
+  subnet_ids      = aws_subnet.private[*].id
+  # Attach the worker node security group
+
 
   scaling_config {
     desired_size = 1

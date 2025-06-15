@@ -1,9 +1,66 @@
+# --- AWS Load Balancer Controller IAM Policy ---
+resource "aws_iam_policy" "alb_controller" {
+  name        = "AWSLoadBalancerControllerIAMPolicy"
+  description = "Policy for AWS Load Balancer Controller"
+  policy      = file("${path.module}/alb-iam-policy.json")
+}
+
+# --- EKS OIDC Provider ---
+data "aws_eks_cluster" "this" {
+  name = "chatapp-eks-cluster"
+}
+
+data "aws_eks_cluster_auth" "this" {
+  name = "chatapp-eks-cluster"
+}
+
+data "aws_iam_openid_connect_provider" "this" {
+  url = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
+}
+
+# --- IAM Role for Service Account ---
+data "aws_iam_policy_document" "alb_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+    principals {
+      type        = "Federated"
+      identifiers = [data.aws_iam_openid_connect_provider.this.arn]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")}:sub"
+      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
+    }
+  }
+}
+
+resource "aws_iam_role" "alb_controller" {
+  name               = "eks-alb-controller"
+  assume_role_policy = data.aws_iam_policy_document.alb_assume_role_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "alb_controller_attach" {
+  role       = aws_iam_role.alb_controller.name
+  policy_arn = aws_iam_policy.alb_controller.arn
+}
+
+# --- Kubernetes Service Account for Controller ---
+resource "kubernetes_service_account" "alb_controller" {
+  metadata {
+    name      = "aws-load-balancer-controller"
+    namespace = "kube-system"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.alb_controller.arn
+    }
+  }
+}
 resource "aws_eks_cluster" "chatapp" {
   name     = "${var.project_prefix}-eks-cluster"
   role_arn = aws_iam_role.eks_cluster_role.arn
 
   vpc_config {
-    subnet_ids = aws_subnet.public[*].id
+    subnet_ids = concat(aws_subnet.public[*].id, aws_subnet.private[*].id)
   }
 
 
