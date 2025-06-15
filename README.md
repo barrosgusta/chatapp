@@ -24,6 +24,63 @@ A full-stack chat application with a React + Vite + TypeScript frontend and Go-b
   - `chat-message-service`: Message storage and delivery in Go
 - **AWS Services:** DynamoDB, SQS
 
+## Infrastructure Diagram
+
+```
+         +-------------------+
+         |    Users          |
+         +--------+----------+
+                  |
+                  v
+         +-------------------+
+         |   CloudFront CDN  |
+         +--------+----------+
+                  |
+                  v
+         +-------------------+
+         |   S3 (Frontend)   |
+         |  Static Website   |
+         +--------+----------+
+                  |
+                  v
++-------------------+         +-------------------+
+|   ECR Repos       |         |   S3 (via IRSA)   |
+|-------------------|         +-------------------+
+| - gateway-websocket
+| - chat-message-service
++-------------------+
+        |
+        v
++-------------------+         +-------------------+
+|    EKS Cluster    |<------->|  Node Group(s)    |
+|-------------------|         |-------------------|
+| - Control Plane   |         | - EC2 Worker Nodes|
++-------------------+         +-------------------+
+        |                               |
+        v                               v
++-------------------+         +-------------------+
+|  ALB Controller   |<------->|  AWS ALB          |
+| (IAM, OIDC, SA)   |         +-------------------+
++-------------------+                 |
+        |                             v
+        v                     +-------------------+
++-------------------+         |  Security Groups  |
+|  Service Account  |         +-------------------+
+|  (IRSA, OIDC)     |                 |
++-------------------+                 v
+        |                     +-------------------+
+        v                     |  App Pods/Services|
++-------------------+         +-------------------+
+|   SQS Queue       |<------->|  Chat Services    |
++-------------------+         +-------------------+
+        ^
+        |
++-------------------+
+| DynamoDB Table    |
+| chat_messages     |
++-------------------+
+```
+
 ---
 
 ## Prerequisites
