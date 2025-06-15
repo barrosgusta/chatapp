@@ -134,8 +134,8 @@ terraform init
 terraform apply
 ```
 
-- This creates EKS, DynamoDB, SQS, VPC, and other resources.
-- Note the outputs: SQS queue URL, DynamoDB table name, EKS cluster name.
+- This creates EKS, DynamoDB, SQS, VPC, S3 and other resources.
+- Note the outputs: SQS queue URL, DynamoDB table name, EKS cluster name and S3 bucket name.
 
 ### 3. Configure kubectl for EKS
 
@@ -169,14 +169,11 @@ make helm-deploy
 
 - This deploys both backend services to EKS using Helm charts.
 
-### 7. Deploy Ingress and ServiceAccount (if not automated)
+### 7. Deploy ServiceAccount (if not automated)
 
 ```fish
 kubectl apply -f k8s/serviceaccount-chatapp.yaml
-kubectl apply -f k8s/ingress.yaml
 ```
-
-- This exposes your services via Ingress.
 
 ### 8. Deploy/Configure Frontend
 
@@ -186,12 +183,25 @@ kubectl apply -f k8s/ingress.yaml
   npm install
   npm run build
   ```
-- Deploy the static files to S3/CloudFront, or containerize and deploy to EKS.
-- Set `VITE_WS_URL` and `VITE_CHAT_SERVICE_URL` to the correct Ingress endpoints.
+- Deploy the static files to S3 (bucket is provisioned by Terraform):
+  ```fish
+  aws s3 sync chatapp-frontend/dist s3://<your-s3-bucket-name> --delete
+  # Or use the output from Terraform: frontend_static_site_bucket
+  ```
+- (Optional) Set up CloudFront for CDN delivery.
+- Set `VITE_WS_URL` and `VITE_CHAT_SERVICE_URL` to the correct endpoints.
+
+#### S3 Bucket Details
+
+- The S3 bucket for the frontend static site is created by Terraform (`deploy/terraform/s3.tf`).
+- The bucket name is controlled by the `s3_bucket_name` variable (default: `chatapp-frontend-bucket`).
+- The bucket name is output as `frontend_static_site_bucket` after `terraform apply`.
+
+**Tip:** In your CI/CD pipeline, set the `S3_BUCKET_NAME` secret to match the Terraform output for seamless deployment.
 
 ### 9. Test and Monitor
 
-- Check `/healthz` endpoints for all services.
+- Check `/health` endpoints for all services.
 - Test chat functionality end-to-end.
 - Monitor logs and set up alerts as needed.
 
