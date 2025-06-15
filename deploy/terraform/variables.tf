@@ -27,3 +27,9 @@ variable "vpc_cidr" {
   type        = string
   default     = "10.0.0.0/16"
 }
+
+variable "s3_bucket_name" {
+  description = "S3 bucket name for frontend static site deployment"
+  type        = string
+  default     = "chatapp-frontend-bucket"
+}
