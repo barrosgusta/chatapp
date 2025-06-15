@@ -56,12 +56,12 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       - name: Build and push gateway-websocket image
         run: |
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/chatapp-gateway:latest ./services/gateway-websocket
-          docker push ${{ steps.login-ecr.outputs.registry }}/chatapp-gateway:latest
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/chatapp-gateway-websocket:latest ./services/gateway-websocket
+          docker push ${{ steps.login-ecr.outputs.registry }}/chatapp-gateway-websocket:latest
       - name: Build and push chat-message-service image
         run: |
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/chat-message-service:latest ./services/chat-message-service
-          docker push ${{ steps.login-ecr.outputs.registry }}/chat-message-service:latest
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/chatapp-chat-message-service:latest ./services/chat-message-service
+          docker push ${{ steps.login-ecr.outputs.registry }}/chatapp-chat-message-service:latest
 
       # Build frontend static site
       - name: Build frontend static site
