@@ -1,3 +1,14 @@
+# Install AWS Load Balancer Controller via Helm
+install-alb-controller:
+	helm repo add eks https://aws.github.io/eks-charts
+	helm repo update
+	helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
+	  -n kube-system \
+	  --set clusterName=chatapp-eks-cluster \
+	  --set serviceAccount.create=false \
+	  --set serviceAccount.name=aws-load-balancer-controller \
+	  --set region=us-east-1 \
+	  --set vpcId=vpc-0f26a809bc43f1785
 AWS_REGION=us-east-1
 ACCOUNT_ID=767397757187
 ECR_BASE=$(ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
@@ -44,3 +55,7 @@ create-secrets:
 			--namespace chatapp \
 			--dry-run=client -o yaml | kubectl apply -f -; \
 	done
+
+apply-ingress:
+	kubectl apply -f k8s/serviceaccount-chatapp.yaml
+	kubectl apply -f k8s/ingress.yaml
