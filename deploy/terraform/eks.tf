@@ -1,3 +1,7 @@
+# --- EKS Cluster Auth Data Source ---
+data "aws_eks_cluster_auth" "chatapp" {
+  name = aws_eks_cluster.chatapp.name
+}
 # --- AWS Load Balancer Controller IAM Policy ---
 resource "aws_iam_policy" "alb_controller" {
   name        = "AWSLoadBalancerControllerIAMPolicy"
@@ -5,18 +9,7 @@ resource "aws_iam_policy" "alb_controller" {
   policy      = file("${path.module}/alb-iam-policy.json")
 }
 
-# --- EKS OIDC Provider ---
-data "aws_eks_cluster" "this" {
-  name = "chatapp-eks-cluster"
-}
 
-data "aws_eks_cluster_auth" "this" {
-  name = "chatapp-eks-cluster"
-}
-
-data "aws_iam_openid_connect_provider" "this" {
-  url = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
-}
 
 # --- IAM Role for Service Account ---
 data "aws_iam_policy_document" "alb_assume_role_policy" {
@@ -25,11 +18,11 @@ data "aws_iam_policy_document" "alb_assume_role_policy" {
     effect  = "Allow"
     principals {
       type        = "Federated"
-      identifiers = [data.aws_iam_openid_connect_provider.this.arn]
+    identifiers = [aws_iam_openid_connect_provider.eks.arn]
     }
     condition {
       test     = "StringEquals"
-      variable = "${replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")}:sub"
+      variable = "${replace(aws_eks_cluster.chatapp.identity[0].oidc[0].issuer, "https://", "")}:sub"
       values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
     }
   }
@@ -62,7 +55,6 @@ resource "aws_eks_cluster" "chatapp" {
   vpc_config {
     subnet_ids = concat(aws_subnet.public[*].id, aws_subnet.private[*].id)
   }
-
 
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
 }

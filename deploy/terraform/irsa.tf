@@ -2,9 +2,6 @@ data "aws_eks_cluster" "chatapp" {
   name = aws_eks_cluster.chatapp.name
 }
 
-data "aws_eks_cluster_auth" "chatapp" {
-  name = aws_eks_cluster.chatapp.name
-}
 
 data "tls_certificate" "eks" {
   url = data.aws_eks_cluster.chatapp.identity[0].oidc[0].issuer
