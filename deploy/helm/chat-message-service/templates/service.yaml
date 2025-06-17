@@ -5,6 +5,8 @@ metadata:
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: /health
     service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval: "30"
+    # service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    # service.beta.kubernetes.io/aws-load-balancer-subnets: "subnet-04cdf5fcf952c4d47,subnet-0ecf13623799f2ca2"
 spec:
   selector:
     app: chat-message-service
