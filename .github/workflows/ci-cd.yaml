@@ -63,14 +63,21 @@ jobs:
           docker build -t ${{ steps.login-ecr.outputs.registry }}/chatapp-chat-message-service:latest ./services/chat-message-service
           docker push ${{ steps.login-ecr.outputs.registry }}/chatapp-chat-message-service:latest
 
-      # Build frontend static site
+      # Inject environment variables from GitHub Secrets and build frontend static site
+      - name: Create .env file for frontend
+        run: |
+          echo "VITE_WS_URL=${{ secrets.VITE_WS_URL }}" > chatapp-frontend/.env
+          echo "VITE_CHAT_SERVICE_URL=${{ secrets.VITE_CHAT_SERVICE_URL }}" >> chatapp-frontend/.env
       - name: Build frontend static site
         run: |
           cd chatapp-frontend
           npm run build
-      - name: Upload static site to S3
-        run: |
-          aws s3 sync chatapp-frontend/dist s3://${{ secrets.S3_BUCKET_NAME }} --delete
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./chatapp-frontend/dist
+          publish_branch: gh-pages
       # Terraform step
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
