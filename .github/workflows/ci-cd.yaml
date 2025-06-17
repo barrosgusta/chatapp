@@ -31,13 +31,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24.x"
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
       - name: Install frontend dependencies
         run: |
           cd chatapp-frontend
+          rm -rf node_modules bun.lock package-lock.json
           npm install
       # - name: Lint frontend
       #   run: |
