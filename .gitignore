@@ -67,3 +67,6 @@ chatapp-frontend/.vite/
 
 # Ignore Mac system files
 .DS_Store
+
+# Local Netlify folder
+.netlify
