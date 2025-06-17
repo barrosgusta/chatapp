@@ -38,11 +38,11 @@ jobs:
       - name: Install frontend dependencies
         run: |
           cd chatapp-frontend
-          bun install
+          npm install
       # - name: Lint frontend
       #   run: |
       #     cd chatapp-frontend
-      #     bun run lint
+      #     npm run lint
       # (Add frontend tests here if/when available)
       # Build Docker images and push to ECR
       - name: Configure AWS credentials
@@ -71,7 +71,7 @@ jobs:
       - name: Build frontend static site
         run: |
           cd chatapp-frontend
-          bun run build
+          npm run build
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
