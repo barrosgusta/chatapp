@@ -58,4 +58,3 @@ create-secrets:
 
 apply-ingress:
 	kubectl apply -f k8s/serviceaccount-chatapp.yaml
-	kubectl apply -f k8s/ingress.yaml
