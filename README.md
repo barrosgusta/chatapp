@@ -12,6 +12,7 @@ A full-stack chat application with a React + Vite + TypeScript frontend and Go-b
 - [Environment Variables](#environment-variables)
 - [Cloud Deployment](#cloud-deployment)
 - [Step-by-Step Cloud Deployment Guide](#step-by-step-cloud-deployment-guide)
+- [Ansible Integration](#ansible-integration)
 - [Project Structure](#project-structure)
 
 ---
@@ -146,7 +147,7 @@ The frontend will be available at [http://localhost:5173](http://localhost:5173)
 
 ## Cloud Deployment
 
-### 1. Provision Infrastructure
+### 1. Provision Infrastructure (Terraform)
 
 Use Terraform scripts in `deploy/terraform/` to provision AWS resources (EKS, DynamoDB, SQS, etc.):
 
@@ -164,13 +165,18 @@ Authenticate with AWS ECR and push images:
 make push
 ```
 
-### 3. Deploy to Kubernetes
+### 3. Deploy and Configure with Ansible
 
-Use Helm charts in `deploy/helm/`:
+Use Ansible to automate post-provisioning, update kubeconfig, and deploy services with Helm:
 
 ```fish
-make helm-deploy
+cd ansible
+ansible-playbook -i inventories/production playbooks/deploy.yaml
 ```
+
+### 4. (Optional) Manual Helm/Kubectl Steps
+
+If not using Ansible for all steps, you can still use Helm and kubectl directly as before.
 
 ---
 
@@ -218,19 +224,43 @@ make create-secrets
 
 - This command creates secrets in Kubernetes from your `.env` file (with AWS keys, SQS URL, DynamoDB table, etc).
 
-### 6. Deploy Backend Services with Helm
+### 6. Deploy Backend Services with Ansible & Helm
+
+You can use Ansible to run Helm deployments and apply Kubernetes manifests:
+
+```fish
+cd ansible
+ansible-playbook -i inventories/production playbooks/deploy.yaml
+```
+
+Or, if you prefer, use the Makefile targets for Helm directly:
 
 ```fish
 make helm-deploy
 ```
 
-- This deploys both backend services to EKS using Helm charts.
-
 ### 7. Deploy ServiceAccount (if not automated)
+
+This is handled by the Ansible playbook, but you can also run:
 
 ```fish
 kubectl apply -f k8s/serviceaccount-chatapp.yaml
 ```
+
+## Ansible Integration
+
+The project includes an `ansible/` directory for automating deployment and configuration tasks after infrastructure is provisioned with Terraform.
+
+**Typical workflow:**
+
+1. Use Terraform to provision AWS resources.
+2. Use Ansible to:
+   - Fetch Terraform outputs
+   - Update kubeconfig for EKS
+   - Deploy backend services with Helm
+   - Apply Kubernetes manifests (e.g., ServiceAccount)
+
+See `ansible/README.md` for details and usage instructions.
 
 ### 8. Deploy/Configure Frontend
 
